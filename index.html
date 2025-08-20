@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>لعبة المطابقة الذكية الدينية</title>
+<style>
+body { font-family: Arial, sans-serif; background: #fefefe; text-align: center; }
+h2 { color: #2c3e50; margin-top: 20px; }
+#instructions { margin: 10px auto; font-size: 18px; color: #34495e; }
+.grid { display: grid; grid-template-columns: repeat(4, 120px); gap: 15px; justify-content: center; margin-top: 20px; }
+.card { width: 120px; height: 120px; background: #3498db; color: white; 
+       display: flex; justify-content: center; align-items: center; font-size: 18px;
+       cursor: pointer; border-radius: 10px; user-select: none; transition: transform 0.3s; }
+.card.correct { background: #2ecc71; transform: scale(1.1); }
+.card.wrong { background: #e74c3c; transform: scale(0.9); }
+#attempts { margin-top: 15px; font-size: 18px; color: #2c3e50; }
+</style>
+</head>
+<body>
+<h2>لعبة المطابقة الذكية الدينية</h2>
+<div id="instructions">اقلب بطاقتين لإيجاد الزوج المتطابق. حاول إكمال جميع الأزواج!</div>
+<div class="grid" id="game"></div>
+<div id="attempts">عدد المحاولات: 0</div>
+
+<script>
+const cards = [
+  {text: "الله أكبر", icon: "🌙"},
+  {text: "الحمد لله", icon: "🌸"},
+  {text: "سبحان الله", icon: "💧"},
+  {text: "لا إله إلا الله", icon: "⭐"},
+  {text: "الرحمن", icon: "🌞"},
+  {text: "الرحيم", icon: "☁️"},
+  {text: "بسم الله", icon: "🕌"},
+  {text: "إن شاء الله", icon: "🕊️"}
+];
+
+// تكرار كل بطاقة لإنشاء الأزواج
+let gameCards = [];
+cards.forEach(c => {
+  gameCards.push({...c}); 
+  gameCards.push({...c});
+});
+
+// خلط البطاقات
+gameCards.sort(() => 0.5 - Math.random());
+
+let firstCard = null, secondCard = null, lock = false, attempts = 0;
+const game = document.getElementById("game");
+const attemptsDisplay = document.getElementById("attempts");
+
+gameCards.forEach((cardData, index) => {
+  const card = document.createElement("div");
+  card.classList.add("card");
+  card.dataset.text = cardData.text;
+  card.dataset.icon = cardData.icon;
+  card.innerHTML = "?";
+  card.addEventListener("click", () => flipCard(card));
+  game.appendChild(card);
+});
+
+function flipCard(card) {
+  if(lock || card.innerHTML !== "?") return;
+  card.innerHTML = card.dataset.icon + "<br>" + card.dataset.text;
+  card.style.fontSize = "16px";
+
+  if(!firstCard) {
+    firstCard = card;
+  } else {
+    secondCard = card;
+    lock = true;
+    attempts++;
+    attemptsDisplay.textContent = "عدد المحاولات: " + attempts;
+
+    if(firstCard.dataset.text === secondCard.dataset.text) {
+      firstCard.classList.add("correct");
+      secondCard.classList.add("correct");
+      firstCard = secondCard = null;
+      lock = false;
+      checkWin();
+    } else {
+      firstCard.classList.add("wrong");
+      secondCard.classList.add("wrong");
+      setTimeout(() => {
+        firstCard.innerHTML = "?";
+        secondCard.innerHTML = "?";
+        firstCard.classList.remove("wrong");
+        secondCard.classList.remove("wrong");
+        firstCard = secondCard = null;
+        lock = false;
+      }, 1000);
+    }
+  }
+}
+
+function checkWin() {
+  const matched = document.querySelectorAll(".card.correct");
+  if(matched.length === gameCards.length) {
+    setTimeout(() => alert("مبروك! أكملت جميع الأزواج بعد " + attempts + " محاولة."), 100);
+  }
+}
+</script>
+</body>
+</html>
